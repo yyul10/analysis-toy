@@ -1,0 +1,104 @@
+R Library
+
+PAWSR2 : checking.plots(m1), outlier
+MASS : stepAIC() , AIC(),BIC(k=log(n))
+leaps : regsubsets(MPG.city~.,d1), subset selection
+boot : cv.glm(), k-folds,LOOCV selection
+    glm1=glm(mpg~horsepower,data=Auto)  # ’data’ required
+    cverr=cv.glm(Auto,glm1)
+car : vif(m1), to check multicollinearity
+glmnet : glmnet(x,y, alpha=0, lambda = ) # x should be matrix (x= model.matrix(Salary~.,d60[,-1])) , to execute Ridge and Lasso regression, predict(model,s=cv.glm$lambda.min,type="coef")
+
+
+predict(m2, newval, interval = "conf", level=0.9)
+
+res = resid(m1)
+which.max(res)
+
+# just label the outlier
+res   = resid(m1)
+idx   = which(res==min(res))
+label = rep("",392)
+label[idx]=idx
+text(horsepower~weight,d2,labels=label,pos=1,offset=0.5,cex=0.6,col=2)
+
+sres = rstandard(m1)
+shapiro.test(sres)
+#Shapiro-Wilk normality test
+#W = 0.87147, p-value = 1.834e-07
+
+predict.regsubsets = function(object, newdata, id, ...)
+{
+    form <- as.formula(object$call[[2]])
+    mat <- model.matrix(form, newdata)
+    coefi = coef(object, id = id)
+    xvars <- names(coefi)
+    mat[, xvars]%*%coefi
+} # predict 할때는 newval에 y값도 임의로 넣어줘야함, adjR2 Method
+
+for (j in 1:k)
+{
+    y = d1$hwfat[folds==j] # y values in the jth folds
+    d2 = d1[folds!=j,] # training set ignores the jth fold
+    models = regsubsets(hwfat~.,d2)
+    for(i in 1:6)
+    {
+        newdata = d1[folds ==j,] # test set
+        yhat = predict.regsubsets(models,newdata,id=i) # predict the jth fold (vector)
+        mspe[j,i] = mean((y-yhat)^2)
+    }    
+}
+
+for (j in 1:k)
+{
+    y = d1$hwfat[j,] # y values in the jth
+    d2 = d1[-j,] # training set ignores the jth row
+    models = regsubsets(hwfat~.,d2)
+    for(i in 1:6)
+    {
+            newdata = d1[j,] # test set
+            yhat = predict.regsubsets(models,newdata,id=i) # predict the jth row
+            mspe[j,i] = mean((y-yhat)^2)
+    }     
+}
+
+yhat = fitted(m2)
+yobs = d1$MPG.city
+bounds = c(10,50)
+plot(yhat~yobs,pch=19,cex=0.5,ylim=bounds,xlim=bounds)
+text(yhat~yobs,labels=rownames,col="red",cex=0.6,pos=1,offset=0.25)
+
+slope = coef(m53)[2]
+b1 = coef(m53)[3]
+b2 = coef(m53)[4]
+abline(int,slope,col=1)
+abline(int+b1,slope,col=2)
+abline(int+b2,slope,col=3)
+label = c("Other Colors","White","Silver")
+legend("topright",legend=label,lty=c(1,1,1),col=c(1,2,3),cex=0.8)
+
+# scatterplot
+plot(MPG.city~Weight,d0,pch=20,cex=0.9)
+grid()
+# scatterplot colored
+aux  = as.numeric(d3$RPM)      # pts color
+aux
+aux1 = aux - 1
+plot(MPG.city~Weight,d3,col=aux,pch=20,cex=1+aux1)
+grid()
+
+# plot explaining the outliers
+fitted=abs(residuals(m3))
+fitted[fitted>4.5]
+aux  = as.numeric(d3$RPM)
+aux2 = rownames(d3)
+plot(MPG.city~Weight,d3,col=aux,pch=aux,cex=0.88)
+
+#text(MPG.city~Weight,d3,labels=ifelse(fitted>4.4,aux2,""),pos=1,offset=0.5,cex=0.4)
+text(MPG.city~Weight,d3,labels=ifelse(d3$RPM!="0",rownames(d0),""),pos=1,offset=0.5,cex=0.4)
+abline(m3$coef[1],m3$coef[5],col=1,lty=1,lwd=1.4)
+abline(m3$coef[1]+m3$coef[2],m3$coef[5],col=2,lty=2,lwd=1.4)
+abline(m3$coef[1]+m3$coef[3],m3$coef[5],col=3,lty=3,lwd=1.4)
+abline(m3$coef[1]+m3$coef[4],m3$coef[5],col=4,lty=4,lwd=1.4)
+grid()
+legend("topright",c("0","5700","5900","6500"),lty=1:4,cex=0.6,lwd=c(1.5),col=c(1,2,3,4))
